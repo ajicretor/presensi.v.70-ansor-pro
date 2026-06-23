@@ -2228,7 +2228,25 @@ function sanitizeStateData() {
 }
 
 function saveStateToLocalStorage() {
+    // 1. Simpan Lokal agar aplikasi tetap cepat (Offline-First)
     localStorage.setItem("SIANSOR_STATE_V7", JSON.stringify(appState));
+    
+    // 2. Push ke Server (Google Sheets) secara background jika terhubung internet
+    if (!IS_PREVIEW) {
+        fetch(GAS_URL, {
+            method: 'POST',
+            body: JSON.stringify({
+                action: 'saveCompleteState',
+                appState: appState
+            }),
+            headers: { 'Content-Type': 'text/plain;charset=utf-8' } // GAS butuh text/plain
+        })
+        .then(response => response.json())
+        .then(data => console.log("Cloud Sync Sukses:", data))
+        .catch(err => console.error("Cloud Sync Error:", err));
+    }
+}
+
 }
 
 // ------------------------- RENDER CORE UI & STATES -------------------------
